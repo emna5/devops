@@ -30,30 +30,41 @@ pipeline {
         stage('Build') {
             steps {
                 echo "===== Building Spring Boot application ====="
-                sh 'mvn clean install -DskipTests'
+                sh 'mvn clean install -DskipTests' // still skip tests here
             }
         }
 
-      stage('SonarQube Analysis') {
-    steps {
-        echo "===== Running SonarQube analysis ====="
-        withSonarQubeEnv('MySonarServer') { // match the server name in Jenkins
-            withCredentials([string(credentialsId: 'sonartoken1', variable: 'SONAR_TOKEN')]) {
-                sh 'mvn sonar:sonar -Dsonar.login=$SONAR_TOKEN -Dmaven.test.skip=true'
+        stage('Test') {
+            steps {
+                echo "===== Running unit tests ====="
+                sh 'mvn test'
             }
         }
-    }
-}   
 
+        stage('Package') {
+            steps {
+                echo "===== Packaging Spring Boot application ====="
+                sh 'mvn package'
+            }
+        }
 
+        stage('SonarQube Analysis') {
+            steps {
+                echo "===== Running SonarQube analysis ====="
+                withSonarQubeEnv('MySonarServer') { // match the server name in Jenkins
+                    withCredentials([string(credentialsId: 'sonartoken1', variable: 'SONAR_TOKEN')]) {
+                        sh 'mvn sonar:sonar -Dsonar.login=$SONAR_TOKEN -Dmaven.test.skip=true'
+                    }
+                }
+            }
+        }
 
         stage('Archive Artifact') {
-    steps {
-        echo "===== Archiving JAR file ====="
-        archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-    }
-}
-
+            steps {
+                echo "===== Archiving JAR file ====="
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            }
+        }
 
         stage('Create Docker Image') {
             steps {
