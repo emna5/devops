@@ -48,11 +48,12 @@ pipeline {
 
 
         stage('Archive Artifact') {
-            steps {
-                echo "===== Archiving JAR file ====="
-                archiveArtifacts artifacts: '*/target/*.jar', fingerprint: true
-            }
-        }
+    steps {
+        echo "===== Archiving JAR file ====="
+        archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+    }
+}
+
 
         stage('Create Docker Image') {
             steps {
