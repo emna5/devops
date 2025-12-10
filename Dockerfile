@@ -6,6 +6,6 @@ WORKDIR /app
 COPY target/student-management-0.0.1-SNAPSHOT.jar app.jar
 
 # Ton Spring Boot écoute sur 8089
-EXPOSE 8089
+EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
