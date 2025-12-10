@@ -1,14 +1,11 @@
-# Use an official OpenJDK runtime as a parent image
-FROM amazoncorretto:17
+FROM eclipse-temurin:17-jdk-jammy
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy the JAR file from the target directory into the container
+# On copie le JAR correct (pas le .original)
 COPY target/student-management-0.0.1-SNAPSHOT.jar app.jar
 
-# Expose the port that the application will run on
-EXPOSE 8080
+# Ton Spring Boot écoute sur 8089
+EXPOSE 8089
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
