@@ -34,16 +34,17 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
+      stage('SonarQube Analysis') {
     steps {
         echo "===== Running SonarQube analysis ====="
-        withSonarQubeEnv('MySonarServer') { // this must match the SonarQube server name in Jenkins
-            withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+        withSonarQubeEnv('MySonarServer') { // match the server name in Jenkins
+            withCredentials([string(credentialsId: 'sonartoken', variable: 'SONAR_TOKEN')]) {
                 sh 'mvn sonar:sonar -Dsonar.login=$SONAR_TOKEN -Dmaven.test.skip=true'
             }
         }
     }
 }
+
 
 
         stage('Archive Artifact') {
