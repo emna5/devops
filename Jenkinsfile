@@ -23,15 +23,13 @@ pipeline {
 
 
        stage('SonarQube Analysis') {
-    environment {
-        SONAR_TOKEN = credentials('SonarQube Token')
-    }
     steps {
         withSonarQubeEnv('MySonarServer') {
-            sh 'mvn sonar:sonar -Dsonar.login=$SONAR_TOKEN'
+            sh 'mvn clean verify sonar:sonar'
         }
     }
 }
+
 
     }
 }
