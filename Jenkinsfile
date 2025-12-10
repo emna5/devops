@@ -8,27 +8,30 @@ pipeline {
 
     stages {
 
-        stage('GIT') {
-            steps {
-                git branch: 'master',
-                    url: 'https://github.com/emna5/devops.git'
-            }
-        }
+       stage('GIT') {
+    steps {
+        git credentialsId: 'gitToken', branch: 'master',
+            url: 'https://github.com/emna5/devops.git'
+    }
+}
 
-        stage('Compile Stage') {
-            steps {
-                sh 'mvn clean compile'
-            }
-        }
+        sstage('Compile Stage') {
+    steps {
+        sh 'mvn clean compile -DskipTests'
+    }
+}
 
-        stage('SonarQube Analysis') {
-            steps {
-                // Use the SonarQube server you configured in Jenkins
-                withSonarQubeEnv('MySonarServer') {
-                    // Run the Maven command to analyze the code and send results to SonarQube
-                    sh 'mvn clean verify sonar:sonar'
-                }
-            }
+
+       stage('SonarQube Analysis') {
+    environment {
+        SONAR_TOKEN = credentials('SonarQube Token')
+    }
+    steps {
+        withSonarQubeEnv('MySonarServer') {
+            sh 'mvn sonar:sonar -Dsonar.login=$SONAR_TOKEN'
         }
+    }
+}
+
     }
 }
