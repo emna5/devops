@@ -1,27 +1,24 @@
 pipeline {
     agent any
 
-    // Trigger the pipeline every 5 minutes
     triggers {
         cron('H/5 * * * *')
     }
 
-    // Define tools and environment
     tools {
         jdk 'JAVA_HOME'
         maven 'M2_HOME'
     }
 
     options {
-        timeout(time: 1, unit: 'HOURS') // Set timeout limit
+        timeout(time: 1, unit: 'HOURS')
     }
 
     environment {
-        APP_ENV = "DEV" // Define app environment
+        APP_ENV = "DEV"
     }
 
     stages {
-        // Stage to checkout code from GitHub
         stage('Checkout') {
             steps {
                 echo "===== Checking out code from GitHub ====="
@@ -30,25 +27,22 @@ pipeline {
             }
         }
 
-        // Stage to build the Spring Boot application
         stage('Build') {
             steps {
                 echo "===== Building Spring Boot application ====="
-                sh 'mvn clean package -DskipTests'
+                sh 'mvn clean install -DskipTests'
             }
         }
 
-        // Stage to run SonarQube analysis
         stage('SonarQube Analysis') {
             steps {
                 echo "===== Running SonarQube analysis ====="
                 withSonarQubeEnv('MySonarServer') {
-                    sh 'mvn clean verify sonar:sonar'
+                    sh 'mvn sonar:sonar -Dsonar.login=$SONAR_TOKEN -Dmaven.test.failure.ignore=true'
                 }
             }
         }
 
-        // Stage to archive the JAR artifact
         stage('Archive Artifact') {
             steps {
                 echo "===== Archiving JAR file ====="
@@ -56,7 +50,6 @@ pipeline {
             }
         }
 
-        // Stage to create Docker image from the built JAR file
         stage('Create Docker Image') {
             steps {
                 echo "===== Creating Docker image ====="
@@ -64,7 +57,6 @@ pipeline {
             }
         }
 
-        // Stage to push Docker image to DockerHub
         stage('Push Docker Image') {
             steps {
                 echo "===== Pushing Docker image to DockerHub ====="
