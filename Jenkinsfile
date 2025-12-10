@@ -38,12 +38,12 @@ pipeline {
     steps {
         echo "===== Running SonarQube analysis ====="
         withSonarQubeEnv('MySonarServer') { // match the server name in Jenkins
-            withCredentials([string(credentialsId: 'sonartoken', variable: 'SONAR_TOKEN')]) {
+            withCredentials([string(credentialsId: 'sonartoken1', variable: 'SONAR_TOKEN')]) {
                 sh 'mvn sonar:sonar -Dsonar.login=$SONAR_TOKEN -Dmaven.test.skip=true'
             }
         }
     }
-}
+}   
 
 
 
