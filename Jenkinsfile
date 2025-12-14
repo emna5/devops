@@ -51,11 +51,14 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 echo "===== Running SonarQube analysis ====="
-                withSonarQubeEnv('MySonarServer') { // Must match the SonarQube server name in Jenkins
-                    sh 'mvn clean verify sonar:sonar'  // Tests included
+                withSonarQubeEnv('MySonarServer') {
+                    withCredentials([string(credentialsId: 'sonartoken1', variable: 'SONAR_TOKEN')]) {
+                        sh 'mvn clean verify sonar:sonar -Dsonar.login=$SONAR_TOKEN -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml'
+                    }
                 }
             }
         }
+
 
         stage('Archive Artifact') {
             steps {
