@@ -16,10 +16,11 @@ class StudentManagementApplicationTests {
     @Test
     void testDepartmentFields() {
         Department d = new Department();
-        d.setId(1L);
+
+        d.setIdDepartment(1L);
         d.setName("IT");
 
-        assertEquals(1L, d.getId());
+        assertEquals(1L, d.getIdDepartment());
         assertEquals("IT", d.getName());
     }
 }
