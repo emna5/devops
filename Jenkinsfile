@@ -2,12 +2,12 @@ pipeline {
     agent any
 
     triggers {
-        cron('H/5 * * * *')
+        cron('H/5 * * * *') // Build every 5 minutes
     }
 
     tools {
-        jdk 'JAVA_HOME'
-        maven 'M2_HOME'
+        jdk 'JAVA_HOME'   // Make sure this matches your Jenkins JDK name
+        maven 'M2_HOME'   // Make sure this matches your Jenkins Maven name
     }
 
     options {
@@ -29,15 +29,15 @@ pipeline {
 
         stage('Build') {
             steps {
-                echo "===== Building Spring Boot application ====="
-                sh 'mvn clean install -DskipTests' // still skip tests here
+                echo "===== Building Spring Boot application (with tests) ====="
+                sh 'mvn clean install'  // Tests will run here
             }
         }
 
         stage('Test') {
             steps {
                 echo "===== Running unit tests ====="
-                sh 'mvn test'
+                sh 'mvn test'  // Optional, but can generate additional test reports
             }
         }
 
@@ -51,10 +51,8 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 echo "===== Running SonarQube analysis ====="
-                withSonarQubeEnv('MySonarServer') { // match the server name in Jenkins
-                    withCredentials([string(credentialsId: 'sonartoken1', variable: 'SONAR_TOKEN')]) {
-                        sh 'mvn sonar:sonar -Dsonar.login=$SONAR_TOKEN -Dmaven.test.skip=true'
-                    }
+                withSonarQubeEnv('MySonarServer') { // Must match the SonarQube server name in Jenkins
+                    sh 'mvn clean verify sonar:sonar'  // Tests included
                 }
             }
         }
@@ -69,7 +67,7 @@ pipeline {
         stage('Create Docker Image') {
             steps {
                 echo "===== Creating Docker image ====="
-                sh 'docker build -t emnahmani/alpine:1.0.0 .'
+                sh 'docker build -t emnahmani/alpine:1.0.0 -t emnahmani/alpine:latest .'
             }
         }
 
@@ -81,6 +79,16 @@ pipeline {
                         sh 'echo "$dockerhubpwd" | docker login -u emnahmani --password-stdin'
                     }
                     sh 'docker push emnahmani/alpine:1.0.0'
+                    sh 'docker push emnahmani/alpine:latest'
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                echo "===== Checking SonarQube Quality Gate ====="
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
