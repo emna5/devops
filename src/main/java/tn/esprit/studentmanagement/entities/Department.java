@@ -23,14 +23,4 @@ public class Department {
     @OneToMany(mappedBy = "department")
     private List<Student> students;
 
-    public void setId(long l) {
-        this.idDepartment = l;
-
-
-    }
-
-
-    public long getId() {
-        return 1;
-    }
 }
