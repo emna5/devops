@@ -6,19 +6,20 @@ pipeline {
     }
 
     tools {
-        jdk 'JAVA_HOME'   // Make sure this matches your Jenkins JDK name
-        maven 'M2_HOME'   // Make sure this matches your Jenkins Maven name
-    }
-
-    options {
-        timeout(time: 1, unit: 'HOURS')
+        jdk 'JAVA_HOME'   // Jenkins JDK
+        maven 'M2_HOME'   // Jenkins Maven
     }
 
     environment {
         APP_ENV = "DEV"
     }
 
+    options {
+        timeout(time: 1, unit: 'HOURS')
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
                 echo "===== Checking out code from GitHub ====="
@@ -27,30 +28,19 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Start MySQL Test DB') {
             steps {
-                echo "===== Building Spring Boot application (with tests) ====="
-                sh 'mvn clean install'  // Tests will run here
+                echo "===== Starting MySQL test database ====="
+                sh '''
+                    docker run --name studentdb-test -e MYSQL_ROOT_PASSWORD= -e MYSQL_DATABASE=studentdb_test -p 3306:3306 -d mysql:8
+                    sleep 15  # wait for DB to initialize
+                '''
             }
         }
 
-        stage('Test') {
+        stage('Build, Test & SonarQube Analysis') {
             steps {
-                echo "===== Running unit tests ====="
-                sh 'mvn test'  // Optional, but can generate additional test reports
-            }
-        }
-
-        stage('Package') {
-            steps {
-                echo "===== Packaging Spring Boot application ====="
-                sh 'mvn package'
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                echo "===== Running SonarQube analysis ====="
+                echo "===== Building, running tests, and sending SonarQube analysis ====="
                 withSonarQubeEnv('MySonarServer') {
                     withCredentials([string(credentialsId: 'sonartoken1', variable: 'SONAR_TOKEN')]) {
                         sh 'mvn clean verify sonar:sonar -Dsonar.login=$SONAR_TOKEN -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml'
@@ -58,7 +48,6 @@ pipeline {
                 }
             }
         }
-
 
         stage('Archive Artifact') {
             steps {
@@ -93,6 +82,13 @@ pipeline {
                 timeout(time: 10, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
+            }
+        }
+
+        stage('Stop MySQL Test DB') {
+            steps {
+                echo "===== Stopping MySQL test database ====="
+                sh 'docker rm -f studentdb-test'
             }
         }
     }
