@@ -30,25 +30,35 @@ pipeline {
 
         stage('Start MySQL Test DB') {
             steps {
-                echo "===== Starting MySQL test database ====="
                 sh '''
-                    docker rm -f studentdb-test || true   # remove if exists
+                    docker rm -f studentdb-test || true
                     docker run --name studentdb-test -e MYSQL_ROOT_PASSWORD= -e MYSQL_DATABASE=studentdb_test -p 3306:3306 -d mysql:8
-                    sleep 15  # wait for DB to initialize
+                    echo "Waiting for MySQL to be ready..."
+                    until docker exec studentdb-test mysqladmin ping -h "localhost" --silent; do
+                        sleep 2
+                    done
                 '''
             }
         }
-
-        stage('Build, Test & SonarQube Analysis') {
+        stage('Build and Test') {
             steps {
-                echo "===== Building, running tests, and sending SonarQube analysis ====="
+                sh 'mvn clean install'
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
                 withSonarQubeEnv('MySonarServer') {
                     withCredentials([string(credentialsId: 'sonartoken1', variable: 'SONAR_TOKEN')]) {
-                        sh 'mvn clean verify sonar:sonar -Dsonar.login=$SONAR_TOKEN -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml'
+                        sh 'mvn verify sonar:sonar -Dsonar.login=$SONAR_TOKEN -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml'
                     }
                 }
             }
         }
+
+
+
+
+        
 
         stage('Archive Artifact') {
             steps {
