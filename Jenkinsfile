@@ -32,6 +32,7 @@ pipeline {
             steps {
                 echo "===== Starting MySQL test database ====="
                 sh '''
+                    docker rm -f studentdb-test || true   # remove if exists
                     docker run --name studentdb-test -e MYSQL_ROOT_PASSWORD= -e MYSQL_DATABASE=studentdb_test -p 3306:3306 -d mysql:8
                     sleep 15  # wait for DB to initialize
                 '''
