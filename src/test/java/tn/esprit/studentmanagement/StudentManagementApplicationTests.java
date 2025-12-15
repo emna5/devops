@@ -1,31 +1,41 @@
 package tn.esprit.studentmanagement;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
+
 import tn.esprit.studentmanagement.entities.Department;
+import tn.esprit.studentmanagement.services.DepartmentService;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@DataJpaTest
+@Import(DepartmentService.class)
+@ActiveProfiles("test")
 class StudentManagementApplicationTests {
 
-    @Test
-    void contextLoads() {
-        // Minimal test to satisfy Sonar
-        assertTrue(true, "Application context loads successfully.");
-    }
+    @Autowired
+    private DepartmentService departmentService;
 
     @Test
-    void testDepartmentFields() {
+    void testSaveAndReadDepartment() {
         Department d = new Department();
-        d.setIdDepartment(1L);
         d.setName("IT");
-        d.setLocation("Building A");
-        d.setPhone("12345678");
-        d.setHead("John Doe");
+        d.setLocation("Block A");
+        d.setPhone("123456");
+        d.setHead("Admin");
 
-        assertEquals(1L, d.getIdDepartment());
-        assertEquals("IT", d.getName());
-        assertEquals("Building A", d.getLocation());
-        assertEquals("12345678", d.getPhone());
-        assertEquals("John Doe", d.getHead());
+        Department saved = departmentService.saveDepartment(d);
+
+        assertNotNull(saved.getIdDepartment());
+        assertEquals("IT", saved.getName());
+
+        Department found =
+                departmentService.getDepartmentById(saved.getIdDepartment());
+
+        assertNotNull(found);
+        assertEquals("IT", found.getName());
     }
 }
