@@ -2,21 +2,15 @@ package tn.esprit.studentmanagement;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-
 import tn.esprit.studentmanagement.entities.Department;
 import tn.esprit.studentmanagement.services.DepartmentService;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@Import(DepartmentService.class)
-@ActiveProfiles("test")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-
+@SpringBootTest
+@ActiveProfiles("test") // This will use src/test/resources/application-test.properties
 class StudentManagementApplicationTests {
 
     @Autowired
@@ -24,21 +18,21 @@ class StudentManagementApplicationTests {
 
     @Test
     void testSaveAndReadDepartment() {
-        Department d = new Department();
-        d.setName("IT");
-        d.setLocation("Block A");
-        d.setPhone("123456");
-        d.setHead("Admin");
+        // Create a new Department
+        Department dep = new Department();
+        dep.setName("Accounting");
 
-        Department saved = departmentService.saveDepartment(d);
+        // Save it
+        Department saved = departmentService.saveDepartment(dep);
 
-        assertNotNull(saved.getIdDepartment());
-        assertEquals("IT", saved.getName());
+        // Fetch it back
+        Department fetched = departmentService.getDepartmentById(saved.getIdDepartment());
 
-        Department found =
-                departmentService.getDepartmentById(saved.getIdDepartment());
+        // Assertions
+        assertThat(fetched).isNotNull();
+        assertThat(fetched.getName()).isEqualTo("Accounting");
 
-        assertNotNull(found);
-        assertEquals("IT", found.getName());
+        // Optional: clean up
+        departmentService.deleteDepartment(fetched.getIdDepartment());
     }
 }
